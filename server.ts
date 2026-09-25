@@ -61,6 +61,10 @@ function generateToken(): string {
   return crypto.randomBytes(32).toString("hex");
 }
 
+function generateId(prefix: string): string {
+  return `${prefix}-${crypto.randomBytes(6).toString("hex")}`;
+}
+
 async function requireAuth(req: any, res: any, next: any) {
   try {
     const authHeader = req.headers.authorization;
@@ -365,11 +369,14 @@ app.post("/api/auth/login", authRateLimiter, async (req, res) => {
     const now = new Date().toISOString();
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
-    await db.execute(
-      `INSERT INTO sessions (token_hash, user_id, workspace_id, created_at, expires_at)
-       VALUES (?, ?, ?, ?, ?)`,
-      [tokenHash, user.id, user.workspace_id, now, expiresAt]
-    );
+    const sessionId = generateId("ses");
+
+await db.execute(
+  `INSERT INTO sessions
+   (id, user_id, workspace_id, token_hash, expires_at, created_at)
+   VALUES (?, ?, ?, ?, ?, ?)`,
+  [sessionId, userId, workspaceId, tokenHash, expiresAt, now]
+);
 
     const safeUser = {
       id: user.id,
