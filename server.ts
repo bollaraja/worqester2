@@ -371,12 +371,14 @@ app.post("/api/auth/login", authRateLimiter, async (req, res) => {
 
     const sessionId = generateId("ses");
 
-await db.execute(
-  `INSERT INTO sessions
-   (id, user_id, workspace_id, token_hash, expires_at, created_at)
-   VALUES (?, ?, ?, ?, ?, ?)`,
-  [sessionId, userId, workspaceId, tokenHash, expiresAt, now]
-);
+
+
+    await db.execute(
+      `INSERT INTO sessions
+      (id, user_id, workspace_id, token_hash, expires_at, created_at)
+      VALUES (?, ?, ?, ?, ?, ?)`,
+      [sessionId, userId, workspaceId, tokenHash, expiresAt, now]
+    );
 
     const safeUser = {
       id: user.id,
