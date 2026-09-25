@@ -12,7 +12,7 @@ export async function seedDatabase(db: DatabaseAdapter, isAutoSeed = false): Pro
   // 1. Workspace
   if (!isAutoSeed) console.log("[Seed] Seeding primary tenant workspace...");
   await db.execute(
-    "INSERT OR IGNORE INTO workspaces (id, name, slug, plan, created_at) VALUES (?, ?, ?, ?, ?)",
+    "INSERT INTO workspaces (id, name, slug, plan, created_at) VALUES (?, ?, ?, ?, ?)",
     [workspaceId, "Worqester Technologies", "worqester", "Enterprise Cloud", now]
   );
 
