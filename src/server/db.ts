@@ -256,12 +256,28 @@ export async function runMigrations(db: DatabaseAdapter): Promise<void> {
         `);
 
         // Ensure any workspaces referenced in legacy tables exist
-        await tx.execute(`
-          INSERT OR IGNORE INTO workspaces (id, name, slug)
-          SELECT DISTINCT workspace_id, 'Workspace ' || workspace_id, 'workspace-' || workspace_id
-          FROM users
-          WHERE workspace_id IS NOT NULL AND workspace_id NOT IN (SELECT id FROM workspaces);
-        `).catch(() => {});
+        if (tx.isPostgres()) {
+  await tx.execute(`
+    INSERT INTO workspaces (id, name, slug)
+    SELECT DISTINCT workspace_id,
+           'Workspace ' || workspace_id,
+           'workspace-' || workspace_id
+    FROM users
+    WHERE workspace_id IS NOT NULL
+      AND workspace_id NOT IN (SELECT id FROM workspaces)
+    ON CONFLICT (id) DO NOTHING;
+  `);
+} else {
+  await tx.execute(`
+    INSERT OR IGNORE INTO workspaces (id, name, slug)
+    SELECT DISTINCT workspace_id,
+           'Workspace ' || workspace_id,
+           'workspace-' || workspace_id
+    FROM users
+    WHERE workspace_id IS NOT NULL
+      AND workspace_id NOT IN (SELECT id FROM workspaces);
+  `);
+}
 
         // 2. Users (workspace-scoped email uniqueness)
         await tx.execute(`
